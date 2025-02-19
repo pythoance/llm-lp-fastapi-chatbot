@@ -8,6 +8,12 @@ import uuid
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_chroma import Chroma
 
+if os.environ.get('ENVIRONMENT_NAME') != 'local':
+    __import__('pysqlite3')
+    import sys
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+
 app = FastAPI()
 
 # Initialize clients
