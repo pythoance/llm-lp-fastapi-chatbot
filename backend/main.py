@@ -26,7 +26,7 @@ embedding_model = AzureOpenAIEmbeddings(
 retriever = Chroma(
         persist_directory = 'local_movie_db', 
         embedding_function=embedding_model).as_retriever(
-            search_kwargs={"k": 4})
+            search_kwargs={"k": 2})
 
 def get_system_prompt(language: str) -> str:
     return f"""
