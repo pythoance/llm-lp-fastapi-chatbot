@@ -8,10 +8,9 @@ import uuid
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_chroma import Chroma
 
-if os.environ.get('ENVIRONMENT_NAME') != 'local':
-    __import__('pysqlite3')
-    import sys
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 
 app = FastAPI()
@@ -89,6 +88,7 @@ async def stream(request: Request):
 
     
     context = format_docs(retriever.invoke(question))
+
     messages = [
         {"role": "system", "content": get_system_prompt(language)},
         {"role": "user", "content": f"QUESTION: {question}"},
@@ -105,33 +105,7 @@ async def stream(request: Request):
 
     return StreamingResponse(stream_processor(azure_open_ai_response, context), media_type="text/event-stream")
 
-# # New API endpoint to handle response stream
-# @app.post("/api/stream")
-# async def stream_response():
-#     payload = await request.json()
-#     language = payload.get("language", "English")
-#     question = payload.get("question", "")
-#     context = payload.get("context", "")
-#     temperature = payload.get("temperature", 0.5)
-#     session_id = payload.get("session_id", str(uuid.uuid4()))
-    
-#     messages = [
-#         {"role": "system", "content": get_system_prompt(language)},
-#         {"role": "user", "content": f"QUESTION: {question}"},
-#         {"role": "system", "content": f"CONTEXT: {context}"}
-#     ]
-    
-#     # Call the client with streaming enabled
 
-    
-#     async def event_generator():
-#         # Yield each streamed chunk as text
-#         for chunk in stream:
-#             # Assuming each chunk is a dict with the key "message" that holds a "content" field
-#             content = chunk.choices[0].message.content
-#             yield f"data: {content}\n\n"
-    
-#     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8000)
