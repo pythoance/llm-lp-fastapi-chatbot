@@ -5,8 +5,8 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 import os
 from langfuse.openai import AsyncAzureOpenAI
 import uuid
-from langchain_openai import AzureOpenAIEmbeddings
-from langchain_chroma import Chroma
+# from langchain_openai import AzureOpenAIEmbeddings
+# from langchain_chroma import Chroma
 
 # __import__('pysqlite3')
 # import sys
