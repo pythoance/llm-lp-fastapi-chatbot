@@ -48,7 +48,7 @@ steps:
 
 - task: AzureWebApp@1
   inputs:
-    azureSubscription: 'ML Subscription'
+    azureSubscription: 'ml-research-sc'
     appName: 'sgsddsdf'
     appType: webAppLinux
     package: '$(Build.ArtifactStagingDirectory)/drop/$(Build.BuildId).zip'
