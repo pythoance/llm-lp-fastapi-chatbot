@@ -8,9 +8,6 @@ pool:
   name: Azure Pipelines
 
 
-variables:
-  pythonVersion: '3.11'
-
 steps:
 
 
