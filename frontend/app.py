@@ -87,15 +87,21 @@ if prompt := st.chat_input("What is up?"):
         
         backend_url = "http://localhost:8000/stream"
         r = requests.post(backend_url, json=payload, stream=True)
-        # Iterate over streamed response and update UI
-        for chunk in r.iter_lines():
+       
+        context_started = False
+        for chunk in r.iter_lines(decode_unicode=True):
             if chunk:
-                decoded = chunk.decode("utf-8")
-                if "CONTEXT:" in decoded:
-                    context = decoded.replace("CONTEXT: ", "").strip()
+                print(f"Chunk received: {chunk}")
+                if "CONTEXT:" in chunk:
+                    context = chunk.replace("CONTEXT: ", "")
+                    context_started = True
+                elif context_started:
+                    context += f"\n\n{chunk}"
                 else:
-                    response_text += decoded.replace("data: ", "").strip()
-                    st.write(decoded.replace("data: ", "").strip())
+                    response_text += chunk.replace("data: ", "").strip()
+                    st.write(chunk.replace("data: ", "").strip())
+
+        context = context.replace("$", "\\$")
 
         st.session_state.chat_history.append({"role": "system", "content": f"CONTEXT: {context}"})       
         st.session_state.chat_history.append({"role": "assistant", "content": response_text})

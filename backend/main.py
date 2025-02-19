@@ -32,16 +32,17 @@ def get_system_prompt(language: str) -> str:
     return f"""
     You are a helpful assistant for question on famous movies. 
     You will formulate all its answers in {language}.
-    Base your answer only on pieces of context below. 
+    Base your answer only on sources of context below. 
     If you don't know the answer, just say that you don't know. 
     Do not answer any question that are not related to movies."""
 
 
 def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+    return "\n\n".join(f"Source {i+1}: {doc.page_content}" for i, doc in enumerate(docs))
 
 def start_streamlit():
-    subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=localhost"])
+    global streamlit_process
+    streamlit_process = subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=localhost"])
 
 from contextlib import asynccontextmanager
 
@@ -49,6 +50,9 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     start_streamlit()
     yield
+    if streamlit_process:
+        streamlit_process.terminate()
+        streamlit_process.wait()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -63,6 +67,7 @@ async def stream_processor(response, context):
         if len(chunk.choices) > 0:
             delta = chunk.choices[0].delta
             if delta.content:
+
                 yield delta.content
     yield f"\n\nCONTEXT: {context}" 
 
@@ -78,14 +83,12 @@ async def stream(request: Request):
 
     
     context = format_docs(retriever.invoke(question))
-
     messages = [
         {"role": "system", "content": get_system_prompt(language)},
         {"role": "user", "content": f"QUESTION: {question}"},
         {"role": "system", "content": f"CONTEXT: {context}"}
     ]
 
-    print(messages)
     azure_open_ai_response =  await client.chat.completions.create(
         model='gpt-4o-mini',
         messages=messages,
