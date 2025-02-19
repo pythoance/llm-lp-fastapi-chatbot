@@ -8,9 +8,9 @@ import uuid
 from langchain_openai import AzureOpenAIEmbeddings
 from langchain_chroma import Chroma
 
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# __import__('pysqlite3')
+# import sys
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 
 app = FastAPI()
@@ -22,24 +22,24 @@ client = AsyncAzureOpenAI(
     api_version="2024-06-01"
 )
 
-embedding_model = AzureOpenAIEmbeddings(
-        model="text-embedding-ada-002",
-        api_key=os.getenv('AZURE_OPENAI_API_KEY'),
-        api_version="2024-06-01",
-        azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
-    )
-retriever = Chroma(
-        persist_directory = 'local_movie_db', 
-        embedding_function=embedding_model).as_retriever(
-            search_kwargs={"k": 2})
+# embedding_model = AzureOpenAIEmbeddings(
+#         model="text-embedding-ada-002",
+#         api_key=os.getenv('AZURE_OPENAI_API_KEY'),
+#         api_version="2024-06-01",
+#         azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
+#     )
+# retriever = Chroma(
+#         persist_directory = 'local_movie_db', 
+#         embedding_function=embedding_model).as_retriever(
+#             search_kwargs={"k": 2})
 
 def get_system_prompt(language: str) -> str:
     return f"""
-    You are a helpful assistant for question on famous movies. 
-    You will formulate all its answers in {language}.
-    Base your answer only on sources of context below. 
-    If you don't know the answer, just say that you don't know. 
-    Do not answer any question that are not related to movies."""
+    You are a helpful assistant for question on famous movies.""" 
+    # You will formulate all its answers in {language}.
+    # Base your answer only on sources of context below. 
+    # If you don't know the answer, just say that you don't know. 
+    # Do not answer any question that are not related to movies."""
 
 
 def format_docs(docs):
@@ -87,7 +87,8 @@ async def stream(request: Request):
     session_id = payload.get("session_id", str(uuid.uuid4()))
 
     
-    context = format_docs(retriever.invoke(question))
+    # context = format_docs(retriever.invoke(question))
+    context = 'test context'
 
     messages = [
         {"role": "system", "content": get_system_prompt(language)},

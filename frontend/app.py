@@ -91,7 +91,6 @@ if prompt := st.chat_input("What is up?"):
         context_started = False
         for chunk in r.iter_lines(decode_unicode=True):
             if chunk:
-                print(f"Chunk received: {chunk}")
                 if "CONTEXT:" in chunk:
                     context = chunk.replace("CONTEXT: ", "")
                     context_started = True
