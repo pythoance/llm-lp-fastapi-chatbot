@@ -1,6 +1,3 @@
-langchain_openai
-langchain_chroma 
-langchain_core
 wikipedia
 streamlit
 openai
@@ -8,4 +5,5 @@ langchain_community
 langfuse
 streamlit-feedback
 fastapi
+chromadb-client
 pysqlite3-binary==0.5.3

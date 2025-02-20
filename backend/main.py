@@ -5,65 +5,45 @@ from fastapi.responses import RedirectResponse, StreamingResponse, HTMLResponse
 import os
 from langfuse.openai import AsyncAzureOpenAI
 import uuid
-# from langchain_openai import AzureOpenAIEmbeddings
-# from langchain_chroma import Chroma
+import chromadb
+from contextlib import asynccontextmanager
 
-# __import__('pysqlite3')
-# import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 
 app = FastAPI()
 
-# Initialize clients
-client = AsyncAzureOpenAI(
-    azure_endpoint=os.environ.get('AZURE_OPENAI_ENDPOINT'),
-    api_key=os.environ.get('AZURE_OPENAI_API_KEY'),
-    api_version="2024-06-01"
-)
 
-# embedding_model = AzureOpenAIEmbeddings(
-#         model="text-embedding-ada-002",
-#         api_key=os.getenv('AZURE_OPENAI_API_KEY'),
-#         api_version="2024-06-01",
-#         azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
-#     )
-# retriever = Chroma(
-#         persist_directory = 'local_movie_db', 
-#         embedding_function=embedding_model).as_retriever(
-#             search_kwargs={"k": 2})
+
+
 
 def get_system_prompt(language: str) -> str:
     return f"""
-    You are a helpful assistant for question on famous movies.""" 
-    # You will formulate all its answers in {language}.
-    # Base your answer only on sources of context below. 
-    # If you don't know the answer, just say that you don't know. 
-    # Do not answer any question that are not related to movies."""
+    You are a helpful assistant for question on famous movies.
+    You will formulate all your answers in {language}.
+    Base your answer only on sources of context below. 
+    If you don't know the answer, just say that you don't know. 
+    Do not answer any question that are not related to movies."""
 
 
 def format_docs(docs):
-    return "\n\n".join(f"Source {i+1}: {doc.page_content}" for i, doc in enumerate(docs))
+    return "\n\n".join(f"Source {i+1}: {doc}" for i, doc in enumerate(docs))
 
 def start_streamlit():
     global streamlit_process
-    print('inside start streamlit')
-    try:
-        backend_dir = os.path.dirname(__file__)  # Directory of main.py
-        project_root = os.path.dirname(backend_dir)  # Go up one level
-        frontend_path = os.path.join(project_root, "frontend")
-        streamlit_process = subprocess.Popen(
-            ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"],
-            cwd=frontend_path
-        )
-        print(f"Streamlit process started with PID: {streamlit_process.pid}")
-    except Exception as e:
-        print(f"Error starting Streamlit: {e}")
-from contextlib import asynccontextmanager
+
+    
+    backend_dir = os.path.dirname(__file__)  # Directory of main.py
+    project_root = os.path.dirname(backend_dir)  # Go up one level
+    frontend_path = os.path.join(project_root, "frontend")
+    streamlit_process = subprocess.Popen(
+        ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"],
+        cwd=frontend_path
+    )
+        
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print('starting streamlit')
     start_streamlit()
     yield
     if streamlit_process:
@@ -109,17 +89,31 @@ async def stream(request: Request):
     temperature = payload.get("temperature", 0.5)
     session_id = payload.get("session_id", str(uuid.uuid4()))
 
+    azure_oai_client = AsyncAzureOpenAI(
+        azure_endpoint=os.environ.get('AZURE_OPENAI_ENDPOINT'),
+        api_key=os.environ.get('AZURE_OPENAI_API_KEY'),
+        api_version="2024-06-01"
+        )
     
-    # context = format_docs(retriever.invoke(question))
-    context = 'test context'
 
+    embedding = await azure_oai_client.embeddings.create(
+        input=question,
+        model="text-embedding-ada-002")
+    
+    
+    chroma_client = chromadb.HttpClient(host='98.71.147.60', port=8000)
+    vector_db = chroma_client.get_collection('test_movie_collection')
+    query_result = vector_db.query(query_embeddings=embedding.data[0].embedding)
+    docs = query_result['documents'][0]
+    context = format_docs(docs)
+    
     messages = [
         {"role": "system", "content": get_system_prompt(language)},
         {"role": "user", "content": f"QUESTION: {question}"},
         {"role": "system", "content": f"CONTEXT: {context}"}
     ]
 
-    azure_open_ai_response =  await client.chat.completions.create(
+    azure_open_ai_response =  await azure_oai_client.chat.completions.create(
         model='gpt-4o-mini',
         messages=messages,
         temperature=temperature,
