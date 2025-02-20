@@ -47,13 +47,23 @@ def format_docs(docs):
 
 def start_streamlit():
     global streamlit_process
-    base_url = os.environ.get("BASE_URL")
-    streamlit_process = subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=8501", f"--server.address=0.0.0.0"])
-
+    print('inside start streamlit')
+    try:
+        backend_dir = os.path.dirname(__file__)  # Directory of main.py
+        project_root = os.path.dirname(backend_dir)  # Go up one level
+        frontend_path = os.path.join(project_root, "frontend")
+        streamlit_process = subprocess.Popen(
+            ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"],
+            cwd=frontend_path
+        )
+        print(f"Streamlit process started with PID: {streamlit_process.pid}")
+    except Exception as e:
+        print(f"Error starting Streamlit: {e}")
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print('starting streamlit')
     start_streamlit()
     yield
     if streamlit_process:
