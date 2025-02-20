@@ -47,7 +47,7 @@ def format_docs(docs):
 
 def start_streamlit():
     global streamlit_process
-    base_url = os.getenv("BASE_URL", "localhost")
+    base_url = os.environ.get("BASE_URL")
     streamlit_process = subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=8501", f"--server.address={base_url}"])
 
 from contextlib import asynccontextmanager
@@ -65,7 +65,7 @@ app = FastAPI(lifespan=lifespan)
 # Redirect root to Streamlit UI
 @app.get("/")
 def redirect_to_streamlit():
-    base_url = os.getenv("BASE_URL", "http://localhost")
+    base_url = os.environ.get("BASE_URL")
     return RedirectResponse(url=F"{base_url}:8501")
 
 # Generate Stream
