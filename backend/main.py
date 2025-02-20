@@ -1,7 +1,7 @@
 import subprocess
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse, HTMLResponse
 import os
 from langfuse.openai import AsyncAzureOpenAI
 import uuid
@@ -48,7 +48,7 @@ def format_docs(docs):
 def start_streamlit():
     global streamlit_process
     base_url = os.environ.get("BASE_URL")
-    streamlit_process = subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=80", f"--server.address={base_url}"])
+    streamlit_process = subprocess.Popen(["streamlit", "run", "frontend/app.py", "--server.port=8501", f"--server.address=0.0.0.0"])
 
 from contextlib import asynccontextmanager
 
@@ -64,9 +64,20 @@ app = FastAPI(lifespan=lifespan)
 
 # Redirect root to Streamlit UI
 @app.get("/")
-def redirect_to_streamlit():
-    base_url = os.environ.get("BASE_URL")
-    return RedirectResponse(url=F"{base_url}")
+async def serve_streamlit():
+    streamlit_url = os.environ.get("STREAMLIT_URL", "http://localhost:8501")  # Default to localhost
+    content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Streamlit App</title>
+    </head>
+    <body>
+        <iframe src="{streamlit_url}" width="100%" height="800" frameborder="0"></iframe>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=content)
 
 # Generate Stream
 async def stream_processor(response, context):
