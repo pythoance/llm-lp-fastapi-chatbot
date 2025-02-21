@@ -3,22 +3,12 @@ trigger:
     include:
       - main
   
-
 pool:
   name: Azure Pipelines
 
-
-variables:
-  pythonVersion: '3.11'
-
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(pythonVersion)'
-    addToPath: true
 
 - script: |
-
     rm -rf frontend
   displayName: 'Remove frontend folder'
 
