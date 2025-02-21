@@ -3,6 +3,9 @@ from langchain_openai import AzureOpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
+import chromadb
+from openai import AzureOpenAI
+import os
 
 embeddings = AzureOpenAIEmbeddings(
     model="text-embedding-ada-002",
@@ -26,6 +29,11 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap 
 
 movie_docs_split = text_splitter.split_documents(movie_docs)
 
-movie_vector_db = Chroma.from_documents(documents=movie_docs_split, 
+chroma_client = chromadb.HttpClient(host='98.71.147.60', port=8000)
+
+
+
+movie_vector_db = Chroma.from_documents(collection_name='test_movie_collection',
+                                        documents=movie_docs_split, 
                                         embedding=embeddings, 
-                                        persist_directory="local_movie_db")
+                                        client=chroma_client,)
