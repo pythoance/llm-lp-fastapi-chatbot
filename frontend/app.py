@@ -26,12 +26,6 @@ with st.sidebar:
     if language != st.session_state.language:
         st.session_state.language = language
         reset_session()
-
-    st.session_state.temperature = st.slider(
-        'Temperature', 
-        min_value=0.0, 
-        max_value=1.0, 
-        value = 0.5)
     
 if st.button('Start New Chat'):
     reset_session()
@@ -81,11 +75,10 @@ if prompt := st.chat_input("What is up?"):
         payload = {
             "language": st.session_state.language,
             "question": reformulated_question,
-            "temperature": st.session_state.temperature,
             "session_id": st.session_state.session_id
         }
         
-        backend_url = "http://localhost:8000/stream"
+        backend_url = "http://localhost:8000/chatbot-response-stream"
         r = requests.post(backend_url, json=payload, stream=True)
        
         context_started = False
@@ -104,7 +97,6 @@ if prompt := st.chat_input("What is up?"):
 
         st.session_state.chat_history.append({"role": "system", "content": f"CONTEXT: {context}"})       
         st.session_state.chat_history.append({"role": "assistant", "content": response_text})
-        # evaluate_faithfullness(reformulated_question, context, response_text)
 
         with st.expander("See Sources"):
             st.write(context)
