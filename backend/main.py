@@ -71,7 +71,7 @@ async def stream(
     vector_db = req.app.state.chroma_client.get_collection('test_movie_collection')
     query_result = vector_db.query(
         query_embeddings=embedding.data[0].embedding,
-        tok_k = 2
+        n_results = 3
         )
     docs = query_result['documents'][0]
     context = format_docs(docs)
