@@ -8,7 +8,7 @@ from langfuse.decorators import langfuse_context, observe
 
 import requests
 
-st.title("Basic RAG chatbot")
+st.title("Movie Chatbot with RAG")
 
 def reset_session():
     st.session_state.chat_history = []
@@ -38,43 +38,17 @@ for message in st.session_state.chat_history:
          with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-if prompt := st.chat_input("What is up?"):
-    st.session_state.chat_history.append({"role": "user", "content": f"QUESTION: {prompt}"})
+if question := st.chat_input("What is up?"):
+    st.session_state.chat_history.append({"role": "user", "content": f"QUESTION: {question}"})
     with st.chat_message("user"):
-        st.markdown(prompt)
-        
-    # if len(st.session_state.chat_history) > 2:
-    #     reformulation_prompt = """
-    #     Reformulate the following follow-up question into a standalone question. 
-    #     Ensure the standalone question is clear and self-contained.
-    #     Follow-up question: {follow_up_question}
-    #     Previous conversation:
-    #     {conversation_history}
-    #     """
-    #     conversation_history = "\n".join(
-    #         f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history[:-1] if msg["role"] != "system"
-    #     )
-    #     reformulation_input = reformulation_prompt.format(
-    #         follow_up_question=prompt, conversation_history=conversation_history
-    #     )
-    #     reformulated_question = st.session_state.client.chat.completions.create(
-    #         model='gpt-4o-mini',
-    #         messages=[{"role": "system", "content": reformulation_input}],
-    #         temperature=st.session_state.temperature,
-    #         session_id=st.session_state.session_id,
-    #         name = 'reformulate standalone question'
-    #     ).choices[0].message.content
-        
-    # else:
-        reformulated_question = prompt
-
-    
+        st.markdown(question)
+            
     
     with st.chat_message("assistant"):
         response_text = ""
         payload = {
             "language": st.session_state.language,
-            "question": reformulated_question,
+            "question": question,
             "session_id": st.session_state.session_id
         }
         

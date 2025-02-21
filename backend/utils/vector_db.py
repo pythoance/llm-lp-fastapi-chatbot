@@ -2,20 +2,40 @@ import os
 from typing import List
 
 import chromadb
-from langfuse.openai import AsyncAzureOpenAI
+import chromadb.utils.embedding_functions as embedding_functions
+
+import yaml
 
 class MovieVectorDB:
     def __init__(self, collection_name: str):
-        
+        self.config = self.load_config()
         self.chroma_client = chromadb.HttpClient(
             host=os.environ.get('CHROMA_HOST'), 
             port=os.environ.get('CHROMA_PORT')
             )
-        self.vector_db = self.get_collection(collection_name)
+        self.embedding_function = embedding_functions.OpenAIEmbeddingFunction(
+                api_key=os.environ.get('AZURE_OPENAI_API_KEY'),
+                api_base=os.environ.get('AZURE_OPENAI_ENDPOINT'),
+                api_type="azure",
+                api_version=self.config['API_VERSION'],
+                model_name=self.config['EMBEDDING_MODEL']
+            )
+        self.vector_db = self.get_collection(
+            name = collection_name,
+            embedding_function = self.embedding_function)
 
+
+    @staticmethod
+    def load_config():
+        file_path = os.path.join('backend', 'config', 'llm.yaml')
+        with open(file_path, 'r') as file:
+            return yaml.safe_load(file)
 
     def get_collection(self, collection_name: str):
         return self.chroma_client.get_collection(collection_name)
+    
+    def create_collection(self, collection_name, data):
+        raise NotImplementedError
     
     @staticmethod
     def format_docs(docs: List[str]) -> str:
@@ -24,15 +44,11 @@ class MovieVectorDB:
     async def query_collection(
             self, 
             text: str, 
-            azure_oai_client: AsyncAzureOpenAI, 
+  
             n_results: int = 3):
         
-        embedding = await azure_oai_client.embeddings.create(
-            input=text,
-            model="text-embedding-ada-002"
-        )
         query_result = self.vector_db.query(
-            query_embeddings=embedding.data[0].embedding,
+            query_embeddings=text,
             n_results=n_results
         )
 
