@@ -8,8 +8,19 @@ pool:
   name: Azure Pipelines
 
 
-steps:
+variables:
+  pythonVersion: '3.11'
 
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+    addToPath: true
+
+- script: |
+
+    rm -rf frontend
+  displayName: 'Remove frontend folder'
 
 - task: ArchiveFiles@2
   displayName: 'Archive files'
