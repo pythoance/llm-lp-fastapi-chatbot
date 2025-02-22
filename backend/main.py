@@ -8,10 +8,6 @@ from .utils.schemas import ChatbotRequest, CreateDBRequest
 from .utils.vector_db import MovieVectorDB
 
 
-
-app = FastAPI()
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.llm = LLM()
@@ -33,7 +29,6 @@ async def root():
 async def create_vector_db(
     create_db_request: CreateDBRequest,
     req: Request):
-    
     return app.state.vector_db.create_collection(
         collection_name=create_db_request.collection_name,
         documents=create_db_request.documents

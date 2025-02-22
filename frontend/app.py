@@ -22,11 +22,10 @@ with st.sidebar:
     language = st.selectbox(
         'Response Language', 
         options=['Romanian', 'English'],
-                 index = 0)
-    if 'language' not in st.session_state:
+        index=0)
+    if 'language' not in st.session_state or language != st.session_state.language:
         st.session_state.language = language
-    if language != st.session_state.language:
-        st.session_state.language = language
+        reset_session()
         reset_session()
     
 if st.button('Start New Chat'):
