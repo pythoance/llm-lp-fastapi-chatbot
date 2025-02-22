@@ -26,7 +26,6 @@ with st.sidebar:
     if 'language' not in st.session_state or language != st.session_state.language:
         st.session_state.language = language
         reset_session()
-        reset_session()
     
 if st.button('Start New Chat'):
     reset_session()
@@ -44,7 +43,6 @@ if question := st.chat_input("What is up?"):
     with st.chat_message("user"):
         st.markdown(question)
             
-    
     with st.chat_message("assistant"):
         response_text = ""
         payload = {
