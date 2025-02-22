@@ -1,12 +1,14 @@
-import streamlit as st
-
+import requests
 import uuid
-from streamlit_feedback import streamlit_feedback
+
 from langfuse import Langfuse
 from langfuse.decorators import langfuse_context, observe
+import streamlit as st
+from streamlit_feedback import streamlit_feedback
 
 
-import requests
+
+
 
 st.title("Movie Chatbot with RAG")
 

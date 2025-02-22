@@ -1,10 +1,12 @@
 import os
 from typing import List
+import uuid
 
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
 
 import yaml
+
 
 class MovieVectorDB:
     def __init__(self, collection_name: str):
@@ -20,7 +22,7 @@ class MovieVectorDB:
                 api_version=self.config['API_VERSION'],
                 model_name=self.config['EMBEDDING_MODEL']
             )
-        self.vector_db = self.get_collection(
+        self.vector_db = self.chroma_client.get_collection(
             name = collection_name,
             embedding_function = self.embedding_function)
 
@@ -31,11 +33,22 @@ class MovieVectorDB:
         with open(file_path, 'r') as file:
             return yaml.safe_load(file)
 
-    def get_collection(self, collection_name: str):
-        return self.chroma_client.get_collection(collection_name)
     
-    def create_collection(self, collection_name, data):
-        raise NotImplementedError
+    def create_collection(self, 
+                          collection_name: str, 
+                          documents: List[str]):
+        
+        collection = self.chroma_client.create_collection(
+            name = collection_name,
+            embedding_function = self.embedding_function)
+
+        ids = [str(uuid.uuid4()) for _ in documents]
+        
+        collection.add(
+            ids=ids,
+            documents=documents)
+        
+        return f"Created {collection_name} collection successfully!"
     
     @staticmethod
     def format_docs(docs: List[str]) -> str:
@@ -43,12 +56,11 @@ class MovieVectorDB:
 
     async def query_collection(
             self, 
-            text: str, 
-  
+            question: str, 
             n_results: int = 3):
         
         query_result = self.vector_db.query(
-            query_embeddings=text,
+            query_texts=question,
             n_results=n_results
         )
 

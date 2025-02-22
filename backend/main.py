@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
 
 from .utils.llm import LLM
-from .utils.schemas import ChatbotRequest
+from .utils.schemas import ChatbotRequest, CreateDBRequest
 from .utils.vector_db import MovieVectorDB
 
 
@@ -15,7 +15,8 @@ app = FastAPI()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.llm = LLM()
-    app.state.vector_db = MovieVectorDB('test_movie_collection')
+    app.state.vector_db = MovieVectorDB(
+        collection_name='langchain')
     yield
 
 app = FastAPI(
@@ -28,6 +29,15 @@ async def root():
     return RedirectResponse(url="/docs")
 
 
+@app.post("/create_vector_db")
+async def create_vector_db(
+    create_db_request: CreateDBRequest,
+    req: Request):
+    
+    return app.state.vector_db.create_collection(
+        collection_name=create_db_request.collection_name,
+        documents=create_db_request.documents
+    )
 
 @app.post("/chatbot-response-stream")
 async def stream(
@@ -36,8 +46,7 @@ async def stream(
     ):
     
     context = await req.app.state.vector_db.query_collection(
-        text=chatbot_request.question,
-        azure_oai_client=req.app.state.llm.client
+        question = chatbot_request.question
     )
     
     streaming_response = await req.app.state.llm.get_chatbot_response(
