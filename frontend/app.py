@@ -6,10 +6,6 @@ from langfuse.decorators import langfuse_context, observe
 import streamlit as st
 from streamlit_feedback import streamlit_feedback
 
-
-
-
-
 st.title("Movie Chatbot with RAG")
 
 def reset_session():
@@ -73,20 +69,4 @@ if question := st.chat_input("What is up?"):
 
         with st.expander("See Sources"):
             st.write(context)
-        
-        
-if len(st.session_state.chat_history) > 2:
-    feedback = streamlit_feedback(
-        feedback_type = "thumbs",
-        key = st.session_state.trace_id,
-        optional_text_label = "Please provide details")
-
-    if feedback:
-        langfuse_client = Langfuse()
-        langfuse_client.score(
-            trace_id=st.session_state.trace_id,
-            name="user-feedback",
-            value=feedback['score'],
-            comment=feedback['text']
-            )
 

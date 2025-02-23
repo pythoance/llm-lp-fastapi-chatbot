@@ -16,6 +16,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     Initializes the LLM and MovieVectorDB instances.
     """
     app.state.llm = LLM()
+    ###TODO Needs to be seperated so that app starts even without existing db
     app.state.vector_db = MovieVectorDB(collection_name='test-movie-collection')
     yield
 
