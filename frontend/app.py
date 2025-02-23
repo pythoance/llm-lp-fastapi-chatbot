@@ -47,7 +47,7 @@ if question := st.chat_input("What is up?"):
             "session_id": st.session_state.session_id
         }
         
-        backend_url = "http://localhost:8000/chatbot-response-stream"
+        backend_url = "http://127.0.0.1:8000/chatbot-response-stream"
         r = requests.post(backend_url, json=payload, stream=True)
        
         context_started = False
@@ -61,10 +61,14 @@ if question := st.chat_input("What is up?"):
                 else:
                     response_text += chunk.replace("data: ", "").strip()
                     st.write(chunk.replace("data: ", "").strip())
+        print(response_text)
+        
+        try:
+            context = context.replace("$", "\\$")
 
-        context = context.replace("$", "\\$")
-
-        st.session_state.chat_history.append({"role": "system", "content": f"CONTEXT: {context}"})       
+            st.session_state.chat_history.append({"role": "system", "content": f"CONTEXT: {context}"})   
+        except:
+            pass    
         st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
         with st.expander("See Sources"):

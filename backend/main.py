@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     app.state.llm = LLM()
     ###TODO Needs to be seperated so that app starts even without existing db
-    app.state.vector_db = MovieVectorDB(collection_name='test-movie-collection')
+    app.state.vector_db = MovieVectorDB(collection_name='langchain')
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -65,6 +65,7 @@ async def stream(
     Returns:
         StreamingResponse: The streaming response with chatbot answers.
     """
+
     context = await req.app.state.vector_db.query_collection(
         question=chatbot_request.question
     )
