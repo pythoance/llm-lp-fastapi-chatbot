@@ -28,10 +28,13 @@ class MovieVectorDB:
             api_version=self.config['API_VERSION'],
             model_name=self.config['EMBEDDING_MODEL']
         )
-        self.vector_db = self.chroma_client.get_collection(
-            name=collection_name,
-            embedding_function=self.embedding_function
-        )
+        try:
+            self.vector_db = self.chroma_client.get_collection(
+                name=collection_name,
+                embedding_function=self.embedding_function
+            )
+        except:
+            raise Warning("Collection does not exist!")
 
     @staticmethod
     def load_config() -> Dict[str, Any]:
