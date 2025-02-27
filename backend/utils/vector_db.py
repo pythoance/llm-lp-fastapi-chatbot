@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import List, Dict, Any
 import uuid
 
@@ -34,7 +35,7 @@ class MovieVectorDB:
                 embedding_function=self.embedding_function
             )
         except:
-            raise Warning("Collection does not exist!")
+            logging.warning("""Collection does not exist! You need to create it via the /create_vector_db endpoint before using chatbot-response-stream. Restart application after creating the collection.""")
 
     @staticmethod
     def load_config() -> Dict[str, Any]:
