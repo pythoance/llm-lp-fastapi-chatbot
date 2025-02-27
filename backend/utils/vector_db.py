@@ -72,7 +72,7 @@ class MovieVectorDB:
             documents=documents
         )
 
-        return f"Created {collection_name} collection successfully!"
+        return {'response':f"Created {collection_name} collection successfully!"}
 
     @staticmethod
     def format_docs(docs: List[str]) -> str:
